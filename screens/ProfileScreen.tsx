@@ -23,15 +23,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ currentUser, userProfile,
 
   const handleSaveProfile = (updatedProfile: UserProfile) => {
     // Recalculate goals when profile changes
-    const newGoals = calculateGoals(
-      updatedProfile.age,
-      updatedProfile.gender,
-      updatedProfile.weight,
-      updatedProfile.height,
-      updatedProfile.activityLevel,
-      updatedProfile.goal
-    );
-    const finalProfile = { ...updatedProfile, ...newGoals };
+    const newGoals = calculateGoals(updatedProfile);
+    const finalProfile = { ...updatedProfile, ...newGoals, onboardingComplete: true }; // Ensure onboardingComplete remains true
     setUserProfile(finalProfile);
     setLocalProfile(finalProfile); // Update local state for immediate display
     setIsEditModalOpen(false);
@@ -60,7 +53,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ currentUser, userProfile,
           <p><strong>Sexo:</strong> {localProfile.gender}</p>
           <p><strong>Peso:</strong> {localProfile.weight} {localProfile.unitType === 'kg/m' ? 'kg' : 'lbs'}</p>
           <p><strong>Altura:</strong> {localProfile.height} {localProfile.unitType === 'kg/m' ? 'cm' : 'ft'}</p>
-          <p><strong>Nível de Atividade:</strong> {localProfile.activityLevel}</p>
+          <p><strong>Nível de Atividade:</strong> {localProfile.dailyActivityLevel}</p>
           <p><strong>Pratica Esportes:</strong> {localProfile.practicesSports}</p>
           <p><strong>Objetivo:</strong> {localProfile.goal}</p>
           <p><strong>Alergias:</strong> {localProfile.allergies.length > 0 ? localProfile.allergies.join(', ') : 'Nenhuma'}</p>
@@ -69,7 +62,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ currentUser, userProfile,
       </Card>
 
       <Card className="p-6">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Minhas Metas Diárias</h3>
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Minhas Metas Diárias</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 dark:text-gray-200">
           <p><strong>Calorias:</strong> {localProfile.caloriesGoal} kcal</p>
           <p><strong>Proteína:</strong> {localProfile.proteinGoal} g</p>

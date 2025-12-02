@@ -23,6 +23,7 @@ export const saveAuthUser = (user: AuthUser): void => {
 
 export const loadAuthUser = (): AuthUser | null => {
     try {
+        // Fix: Use AUTH_USER_KEY instead of AUTH_KEY
         const userJson = localStorage.getItem(AUTH_USER_KEY);
         return userJson ? JSON.parse(userJson) : null;
     } catch (error) {
@@ -33,6 +34,7 @@ export const loadAuthUser = (): AuthUser | null => {
 
 export const removeAuthUser = (): void => {
     try {
+        // Fix: Use AUTH_USER_KEY instead of AUTH_KEY
         localStorage.removeItem(AUTH_USER_KEY);
     } catch (error) {
         console.error("Error removing auth user from local storage:", error);

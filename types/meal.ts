@@ -8,6 +8,8 @@ export interface MealItem {
     carbs: number;
     fat: number;
     timestamp: string; // ISO string
+    source?: 'manual' | 'ai' | 'recipe'; // Track origin
+    imageUrl?: string; // Optional image of the food
 }
 
 export type MealCategory = 'Café da manhã' | 'Almoço' | 'Jantar' | 'Lanche';

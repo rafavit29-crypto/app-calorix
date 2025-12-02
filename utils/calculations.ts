@@ -21,12 +21,12 @@ const calculateBMR = (age: number, gender: UserProfile['gender'], weight: number
 /**
  * Calculates Total Daily Energy Expenditure (TDEE).
  * @param bmr Basal Metabolic Rate
- * @param activityLevel User's activity level
+ * @param dailyActivityLevel User's daily activity level from onboarding
  * @returns TDEE in calories
  */
-const calculateTDEE = (bmr: number, activityLevel: UserProfile['activityLevel']): number => {
+const calculateTDEE = (bmr: number, dailyActivityLevel: UserProfile['dailyActivityLevel']): number => {
     let activityFactor: number;
-    switch (activityLevel) {
+    switch (dailyActivityLevel) {
         case 'Sedentário':
             activityFactor = 1.2;
             break;
@@ -42,7 +42,7 @@ const calculateTDEE = (bmr: number, activityLevel: UserProfile['activityLevel'])
         case 'Muito ativo':
             activityFactor = 1.9;
             break;
-        default:
+        default: // If not informed, default to sedentary for safety
             activityFactor = 1.2;
     }
     return bmr * activityFactor;
@@ -50,30 +50,36 @@ const calculateTDEE = (bmr: number, activityLevel: UserProfile['activityLevel'])
 
 /**
  * Calculates daily caloric, macronutrient, and water goals.
- * @param age in years
- * @param gender User's gender
- * @param weight in kg
- * @param height in cm
- * @param activityLevel User's activity level
- * @param goal User's fitness goal
+ * @param profileData The complete UserProfile data from the onboarding questionnaire.
  * @returns An object with calculated goals
  */
-export const calculateGoals = (
-    age: number,
-    gender: UserProfile['gender'],
-    weight: number,
-    height: number,
-    activityLevel: UserProfile['activityLevel'],
-    goal: UserProfile['goal'],
-): Omit<UserProfile, 'name' | 'allergies' | 'unitType' | 'practicesSports'> => {
-    const bmr = calculateBMR(age, gender, weight, height);
-    let tdee = calculateTDEE(bmr, activityLevel);
+export const calculateGoals = (profileData: UserProfile): Pick<UserProfile, 'caloriesGoal' | 'proteinGoal' | 'carbGoal' | 'fatGoal' | 'waterGoal' | 'activityLevel' | 'goal'> => {
+    const { age, gender, weight, height, dailyActivityLevel, goal } = profileData;
+
+    // Ensure numeric values are valid
+    const validAge = typeof age === 'number' && age > 0 ? age : 25;
+    const validWeight = typeof weight === 'number' && weight > 0 ? weight : 70;
+    const validHeight = typeof height === 'number' && height > 0 ? height : 170;
+
+
+    const bmr = calculateBMR(validAge, gender, validWeight, validHeight);
+    let tdee = calculateTDEE(bmr, dailyActivityLevel);
+
+    // Map questionnaire goal to simplified Wellness Tracker goal for TDEE adjustment
+    let simplifiedGoal: 'Perder peso' | 'Manter' | 'Ganhar massa';
+    if (goal === 'Perder peso' || goal === 'Reduzir medidas') {
+        simplifiedGoal = 'Perder peso';
+    } else if (goal === 'Ganhar massa muscular') {
+        simplifiedGoal = 'Ganhar massa';
+    } else { // 'Manter o peso', 'Definir o corpo', 'Melhorar condicionamento', 'Estilo de vida saudável'
+        simplifiedGoal = 'Manter';
+    }
 
     // Adjust TDEE based on goal
     let caloriesGoal: number;
-    if (goal === 'Perder peso') {
+    if (simplifiedGoal === 'Perder peso') {
         caloriesGoal = tdee - 500; // Deficit for weight loss
-    } else if (goal === 'Ganhar massa') {
+    } else if (simplifiedGoal === 'Ganhar massa') {
         caloriesGoal = tdee + 300; // Surplus for muscle gain
     } else { // Manter
         caloriesGoal = tdee;
@@ -92,20 +98,17 @@ export const calculateGoals = (
     const fatGoal = (caloriesGoal * 0.25) / 9;     // 25% fat
 
     // Water goal: ~35ml per kg of body weight, min 2000ml (2L)
-    const waterGoal = Math.max(weight * 35, 2000); // in ml
+    const waterGoal = Math.max(validWeight * 35, 2000); // in ml
 
     return {
-        age,
-        gender,
-        weight,
-        height,
-        activityLevel,
-        goal,
         caloriesGoal: Math.round(caloriesGoal),
         proteinGoal: Math.round(proteinGoal),
         carbGoal: Math.round(carbGoal),
         fatGoal: Math.round(fatGoal),
         waterGoal: Math.round(waterGoal),
+        // Map dailyActivityLevel to activityLevel for compatibility with old UserProfile fields if still used
+        activityLevel: dailyActivityLevel === '' ? 'Moderado' : dailyActivityLevel,
+        goal: simplifiedGoal // Return the simplified goal for the main app
     };
 };
 

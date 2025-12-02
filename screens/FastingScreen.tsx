@@ -1,4 +1,4 @@
-/// <reference types="node" /> // Fixes Cannot find namespace 'NodeJS' for `NodeJS.Timeout`
+// Fix: Remove reference to NodeJS type definition file as it's a browser application.
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -19,7 +19,8 @@ const FastingScreen: React.FC<FastingScreenProps> = ({ currentUser, fastingState
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
   const [durationInput, setDurationInput] = useState(16); // Default 16 hours
   const [timeRemaining, setTimeRemaining] = useState(0); // in seconds
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Fix: Use 'number' for setTimeout/setInterval return type in browser environments
+  const intervalRef = useRef<number | null>(null);
 
   const calculateTimeRemaining = useCallback(() => {
     if (fastingState?.isActive && fastingState.endTime) {
